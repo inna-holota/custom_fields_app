@@ -1,38 +1,47 @@
 class CustomFieldValue < ApplicationRecord
+  VALUE_TYPES = [
+    CustomField::TEXT_TYPE,
+    CustomField::NUMBER_TYPE
+  ].freeze
+
+  OPTION_TYPES = [
+    CustomField::SINGLE_SELECT_TYPE,
+    CustomField::MULTI_SELECT_TYPE
+  ].freeze
+
   belongs_to :user
   belongs_to :custom_field
-  belongs_to :custom_field_option, optional: true 
+  belongs_to :custom_field_option, optional: true
 
-  validates :value, presence: true, unless: -> { custom_field_option.present? }
+  validates :value, presence: true, if: -> { requires_value_by_type? }
+  validates :custom_field_option_id, presence: true, if: -> { requires_option_by_type? }
+  validate :validate_value_by_field_type
 
-  # Scope to retrieve multi-select values for a specific user and field
-  scope :for_field, ->(user, field) { where(user: user, custom_field: field) }
+  private
 
-  # Utility method to handle multi-select values
-  def self.update_multi_select_values(user, field, values)
-    transaction do
-      # Delete existing values for the multi-select field
-      for_field(user, field).delete_all
-
-      # Insert new values
-      values.each do |value|
-        create!(user: user, custom_field: field, value: value)
-      end
-    end
-  rescue ActiveRecord::RecordInvalid => e
-    Rails.logger.error(e.message)
-    raise e
+  def requires_value_by_type?
+    custom_field.present? && VALUE_TYPES.include?(custom_field.field_type)
   end
-  def valid_value?(field_type)
-    case field_type
-    when 'text'
-      value.is_a?(String)
-    when 'number'
-      value =~ /\A\d+\z/ # Ensure value is numeric
-    when 'single_select', 'multi_select'
-      custom_field_option.present? # Value must point to a valid option(s)
-    else
-      false
+
+  def requires_option_by_type?
+    custom_field.present? && OPTION_TYPES.include?(custom_field.field_type)
+  end
+
+  def validate_value_by_field_type
+    return unless custom_field.present? && value.present?
+
+    VALUE_TYPES.each do |field_type|
+      send(:"validate_#{field_type}_field") if field_type == custom_field.field_type
+    end
+  end
+
+  def validate_text_field
+    errors.add(:value, 'must be a string') unless value.is_a?(String)
+  end
+
+  def validate_number_field
+    unless value.to_s.match?(/\A-?\d+(\.\d+)?\z/)
+      errors.add(:value, 'must be a valid number')
     end
   end
 end

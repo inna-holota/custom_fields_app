@@ -21,19 +21,19 @@
       "custom_field_values": [
         { 
           "custom_field_id": 1, 
-          "value": "Sample Text"  // For text or number fields 
+          "value": "Sample Text"
         },
         { 
           "custom_field_id": 2, 
-          "custom_field_option_id": 5  // For a single_select field 
+          "custom_field_option_id": 5
         },
         { 
           "custom_field_id": 3, 
-          "custom_field_option_id": 6  // One option for a multi_select field
+          "custom_field_option_id": 6
         },
         { 
           "custom_field_id": 3, 
-          "custom_field_option_id": 7  // Another option for the same multi_select field
+          "custom_field_option_id": 7
         }
       ]
     }
@@ -79,15 +79,15 @@
       "custom_fields": [
         {
           "name": "Status",
-          "field_type": "text"  // A new text field
+          "field_type": "text"
         },
         { 
-          "id": 2,  // Update field with existing ID 
+          "id": 2,
           "name": "Roles",
           "field_type": "multi_select",
           "values": [
-            { "id": 3, "value": "Admin" },  // Update existing option
-            { "value": "Guest" }  // Create a new option 
+            { "id": 3, "value": "Admin" },
+            { "value": "Guest" }
           ]
         }
       ]
